@@ -7,7 +7,7 @@ from rich import print
 from rich.progress import track
 from rich.table import Table
 from web3._utils.events import construct_event_topic_set
-from yearn.prices import magic
+# from yearn.prices import magic
 from yearn.utils import contract
 from brownie.exceptions import ContractNotFound
 import warnings
@@ -119,12 +119,12 @@ def votes_by_gauge():
             etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
             print(
                 f'User: {user}\n\
-                Weigth: {"{:.1%}".format(weight/10_000)} weight\n\
+                Weight: {"{:.1%}".format(weight/10_000)} weight\n\
                 veCRV balance: {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())}\n \
                 Lock time remaining {"{:.2f}".format(remaining_lock)}'
             )
             msg = (
-                f'User: {user}\nWeigth: {"{:.1%}".format(weight/10_000)} weight\nveCRV balance: {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())}\nLock time remaining {"{:.2f}".format(remaining_lock)}\n\n{etherscan_link}'
+                f'User: {user}\Weight: {"{:.1%}".format(weight/10_000)} weight\nveCRV balance: {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())}\nLock time remaining {"{:.2f}".format(remaining_lock)}\n\n{etherscan_link}'
             )
             print(msg)
             last_time = time
