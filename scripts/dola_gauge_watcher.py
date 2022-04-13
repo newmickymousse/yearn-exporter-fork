@@ -30,7 +30,7 @@ last_time = 0
 
 load_dotenv(find_dotenv())
 telegram_bot_key = os.environ.get('WAVEY_ALERTS_BOT_KEY')
-chat_id = "-618227757"
+chat_id = "-1001566366160"
 def main():
     
     votes_by_gauge()
@@ -130,6 +130,7 @@ def votes_by_gauge():
             last_time = time
             encoded_message = urllib.parse.quote(msg)
             url = f"https://api.telegram.org/bot{telegram_bot_key}/sendMessage?chat_id={chat_id}&text={encoded_message}&disable_web_page_preview=true"
+            print(url)
             urllib.request.urlopen(url)
         
         first_run = False
