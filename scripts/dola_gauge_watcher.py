@@ -20,7 +20,7 @@ voter = "0x989AEb4d175e16225E39E87d0D97A3360524AD80" # Convex
 voter = "0x88017d9449681d2db852B0311670182929151080"
 dola_gauge = "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a"
 spell_gauge = "0xd8b712d29381748dB89c36BCa0138d7c75866ddF"
-dola_gauge_creation_block = 13097137
+dola_gauge_creation_block = 13608864
 gauge_controller_addr = "0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB"
 deploy_block = 10647875
 gauge_controller = contract(gauge_controller_addr)
@@ -44,7 +44,7 @@ def votes_by_user():
         }
     )
     logs = web3.eth.get_logs(
-            { 'topics': topics, 'fromBlock': deploy_block, 'toBlock': chain.height }
+            { 'topics': topics, 'address': gauge_controller_addr, 'fromBlock': deploy_block, 'toBlock': chain.height }
     )
 
     events = gauge_controller.events.VoteForGauge().processReceipt({'logs': logs})
