@@ -134,5 +134,5 @@ def votes_by_gauge():
             urllib.request.urlopen(url)
         
         first_run = False
-        time.sleep(60*60*10) # sleep 10 mins
+        time.sleep(60*5) # sleep 10 mins
         # time.sleep(10) # sleep 10 secs
