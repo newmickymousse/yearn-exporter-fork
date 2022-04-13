@@ -124,7 +124,7 @@ def votes_by_gauge():
                 Lock time remaining {"{:.2f}".format(remaining_lock)}'
             )
             msg = (
-                f'User: {user}\Weight: {"{:.1%}".format(weight/10_000)} weight\nveCRV balance: {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())}\nLock time remaining {"{:.2f}".format(remaining_lock)}\n\n{etherscan_link}'
+                f'User: {user}\nWeight: {"{:.1%}".format(weight/10_000)} weight\nveCRV balance: {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())}\nLock time remaining {"{:.2f}".format(remaining_lock)}\n\n{etherscan_link}'
             )
             print(msg)
             last_time = time
