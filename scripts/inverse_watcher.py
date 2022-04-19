@@ -91,8 +91,7 @@ def main():
         gauge_votes(last_vote_block + 1)
         inverse_stats()
 
-
-        time.sleep(60)
+        time.sleep(60*5)
     
 
 def fed_expansions(last_block_recorded):
