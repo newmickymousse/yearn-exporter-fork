@@ -326,6 +326,7 @@ def inverse_stats():
         "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9", # crv dola vault
     ]
     data = {}
+    data["last_update_str"] = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
     data["last_update"] = ts
     data["yearn"] = {}
     data["yearn"]["vaults"] = []
