@@ -8,10 +8,12 @@ def main():
     rando = accounts.at("0x88017d9449681d2db852B0311670182929151080", force=True)
     treasury = accounts.at("0xbB6ef0B93792E4E98C6E6062EB1a9638D82E500f", force=True)
     dola_gauge = Contract("0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a")
+    voter = accounts.at("0xF147b8125d2ef93FB6965Db97D6746952a133934", force=True)
     bribev2 = Contract("0x7893bbb46613d7a4FbcC31Dab4C9b823FfeE1026")
     inv = Contract("0x41D5D79431A913C4aE7d69a668ecdfE5fF9DFB68")
 
     nour_before = inv.balanceOf(nour) / 1e18
+    vb = inv.balanceOf(voter) / 1e18
     rando_before = inv.balanceOf(rando) / 1e18
     # rando_before = inv.balanceOf(rando) / 1e18
     # print("claimable nour",bribev2.claimable(nour,dola_gauge,inv) / 1e18)
@@ -20,7 +22,12 @@ def main():
     # nour_gain =  (inv.balanceOf(nour) / 1e18) - nour_before
     # print("nour_gain1",nour_gain)
 
-    bribev2.claim_reward(dola_gauge,inv,{'from':nour})
+
+    claimable = bribev2.claimable(voter,dola_gauge,inv)
+    print(f'INV before claimable {claimable}')
+    bribev2.claim_reward(dola_gauge,inv,{'from':voter})
+    va = inv.balanceOf(voter) / 1e18
+    print(f'INV after claim{va-vb}')
 
     # inv.approve(bribev2, 2**256-1, {'from': treasury})
     # bribev2.add_reward_amount(dola_gauge, inv, 40e18, {'from': treasury})
@@ -45,7 +52,7 @@ def main():
 
     # rando_after =  inv.balanceOf(rando) / 1e18
     # rando_net = rando_after - rando_before
-    nour_after =  inv.balanceOf(nour) / 1e18
+    # nour_after =  inv.balanceOf(nour) / 1e18
 
     # inv.balanceOf(bribev2)
 

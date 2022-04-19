@@ -1,4 +1,4 @@
-import asyncio, json
+import asyncio, json, time
 from collections import defaultdict
 from datetime import datetime
 from brownie import chain, web3, Contract
@@ -17,9 +17,11 @@ SECONDS_IN_A_YEAR = 31536000
 voter = "0xF147b8125d2ef93FB6965Db97D6746952a133934" # Yearn
 voter = "0x989AEb4d175e16225E39E87d0D97A3360524AD80" # Convex
 voter = "0x88017d9449681d2db852B0311670182929151080"
+reth = "0x8aD7e0e6EDc61bC48ca0DD07f9021c249044eD30"
+tetranode = "0x9c5083dd4838E120Dbeac44C052179692Aa5dAC5"
 dola_gauge = "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a"
 spell_gauge = "0xd8b712d29381748dB89c36BCa0138d7c75866ddF"
-dola_gauge_creation_block = 13097137
+dola_gauge_creation_block = 14297137
 gauge_controller_addr = "0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB"
 deploy_block = 10647875
 gauge_controller = contract(gauge_controller_addr)
@@ -28,11 +30,12 @@ gauge_controller = web3.eth.contract(str(gauge_controller_addr), abi=gauge_contr
 last_time = 0
 
 def votes_by_user():    
+    user_to_track = tetranode
     topics = construct_event_topic_set(
         gauge_controller.events.VoteForGauge().abi, 
         web3.codec, 
         {
-            'user': [voter]
+            'user': [user_to_track]
         }
     )
     logs = web3.eth.get_logs(
@@ -43,10 +46,10 @@ def votes_by_user():
 
     event_filter = web3.eth.filter({'topics': topics})
     last_time = 0
-    print(f"Voter history: {voter}\n")
+    print(f"Voter history: {user_to_track}\n")
     for event in events:
         time, user, gauge_address, weight = event.args.values()
-        if event.address != gauge_controller and user != voter:
+        if event.address != gauge_controller and user != user_to_track:
             continue
         if time != last_time:
             dt = datetime.utcfromtimestamp(time).strftime("%m/%d/%Y, %H:%M:%S")
@@ -77,11 +80,11 @@ def votes_by_gauge():
     last_time = 0
     
     for event in events:
-        time, user, gauge_address, weight = event.args.values()
-        if gauge_address != dola_gauge:
+        ts, user, gauge_address, weight = event.args.values()
+        if gauge_address != reth: #dola_gauge:
             continue
-        if time != last_time:
-            dt = datetime.utcfromtimestamp(time).strftime("%m/%d/%Y, %H:%M:%S")
+        if ts != last_time:
+            dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
             print()
             print(f"--- {dt} ---")
         name = ""
@@ -92,6 +95,6 @@ def votes_by_gauge():
         # print(weight, name)
         lock_end = vecrv.locked__end(user)
         current_time = web3.eth.getBlock(event.blockNumber).timestamp
-        remaining_lock = (lock_end - current_time) / SECONDS_IN_A_YEAR
-        print(f'Vote from {user} with {int(vecrv.balanceOf(user, block_identifier=event.blockNumber)/10**vecrv.decimals())} veCRV, {"{:.1%}".format(weight/10_000)} weight, and lock of {"{:.2f}".format(remaining_lock)} years at time of vote')
+        remaining_lock = (lock_end - int( time.time() )) / SECONDS_IN_A_YEAR
+        print(f'Vote from {user} with {int(vecrv.balanceOf(user)/10**vecrv.decimals())} veCRV, {"{:.1%}".format(weight/10_000)} weight, and lock of {"{:.2f}".format(remaining_lock)} years at time of vote')
         last_time = time

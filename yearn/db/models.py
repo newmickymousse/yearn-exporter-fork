@@ -112,8 +112,37 @@ class Reports(SQLModel, table=True):
     date_string: str
     timestamp: str
     updated_timestamp: datetime
-    
 
+class GaugeVotes(SQLModel, table=True):
+    id: int = Field(primary_key=True)
+    chain_id: int
+    block: int
+    txn_hash: str
+    weight: int
+    user_vecrv_balance: int
+    user: str
+    user_lock_time_remaining: int
+    user_lock_expire: int
+    current_timestamp: int
+    date_string: str
+    gauge: str
+    gauge_name: str
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+class FedActivity(SQLModel, table=True):
+    id: int = Field(primary_key=True) 
+    txn_hash: str
+    fed_address: str
+    fed_name: str
+    action: str
+    amount: int
+    current_timestamp: int
+    date_string: str
+    chain_id: int
+    block: int
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 pguser = os.environ.get('PGUSER', 'postgres')
 pgpassword = os.environ.get('PGPASSWORD', 'yearn')
