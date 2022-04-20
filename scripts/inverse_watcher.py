@@ -315,7 +315,7 @@ def gauge_votes(last_block_recorded):
             session.commit()
             print(f"vote added. {v.user}. {v.weight} for {v.gauge}. txn hash {v.txn_hash}. sync {v.block} / {chain.height}.")
             if v.gauge == dola_gauge:
-                msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {v.weight}\nnveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
+                msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
                 send_alert(msg)
 
 def inverse_stats():
