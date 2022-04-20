@@ -30,6 +30,7 @@ gauge_controller = contract(gauge_controller_addr)
 vecrv = contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2")
 gauge_controller = web3.eth.contract(str(gauge_controller_addr), abi=gauge_controller.abi)
 last_time = 0
+last_block_processed = 0
 
 load_dotenv(find_dotenv())
 telegram_bot_key = os.environ.get('WAVEY_ALERTS_BOT_KEY')
@@ -55,6 +56,7 @@ def main():
     last_contraction_block = 10_000_000
     last_expansion_block = 10_000_000
     last_profit_block = 10_000_000
+    last_block_processed = last_profit_block
     while True:
         run_time = datetime.utcfromtimestamp(int( time.time() )).strftime("%m/%d/%Y, %H:%M:%S")
         print(f'\nStarting ... {run_time}\n')
@@ -89,6 +91,9 @@ def main():
         fed_expansions(last_expansion_block + 1)
         fed_profit(last_profit_block + 1)
         gauge_votes(last_vote_block + 1)
+        if last_vote_block > last_block_processed:
+            last_block_processed = last_vote_block + 1
+        last_block_processed = curve_lp_tracking(last_block_processed)
         inverse_stats()
 
         time.sleep(60*5)
@@ -317,6 +322,77 @@ def gauge_votes(last_block_recorded):
             if v.gauge == dola_gauge:
                 msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
                 send_alert(msg)
+
+def curve_lp_tracking(start_block):
+    dola_pool_addr = "0xAA5A67c256e27A5d80712c51971408db3370927D"
+    dola_pool = contract(dola_pool_addr)
+    dola_pool = web3.eth.contract(str(dola_pool_addr), abi=dola_pool.abi)
+    topic_add = construct_event_topic_set(
+        dola_pool.events.AddLiquidity().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    topic_remove = construct_event_topic_set(
+        dola_pool.events.RemoveLiquidity().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    topic_remove_one = construct_event_topic_set(
+        dola_pool.events.RemoveLiquidityOne().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    topic_remove_imbalance = construct_event_topic_set(
+        dola_pool.events.RemoveLiquidityImbalance().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    logs = web3.eth.get_logs(
+        {
+            'address': dola_pool_addr, 
+            'topics': topic_add, 
+            'fromBlock': start_block, 'toBlock': chain.height 
+        }
+    )
+
+    events = dola_pool.events.AddLiquidity().processReceipt({'logs': logs})
+    
+    for event in events:
+        if event.address != dola_pool_addr:
+            continue
+        provider, token_amounts, fees, invariant, token_supply = event.args.values()
+        ts = chain[event.blockNumber].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        print()
+        print(f"--- {dt} ---")
+        name = ""
+        pool = Contract("0xAA5A67c256e27A5d80712c51971408db3370927D")
+        virtual_price = pool.get_virtual_price()
+        dola_supplied = token_amounts[0] / 1e18
+        crv3_supplied = token_amounts[1] / 1e18
+        
+        supplied_usd = dola_supplied + (crv3_supplied * virtual_price / 1e18)
+        if supplied_usd < 50_000:
+            continue
+        bal1 = pool.balances(0) / 1e18
+        bal2 = pool.balances(1) / 1e18
+        raw_token_totals = bal1 + bal2
+        total_pool_value_usd = bal1 + (bal2 * virtual_price / 1e18)
+        
+        
+        txn_hash = event.transactionHash.hex()
+        etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
+        msg = f'🌊 Liquidity Add Detected!\n\n${"{:,.2f}".format(supplied_usd)} of new liquidity added.\n\nDOLA: {"{:,.2f}".format(dola_supplied)}\n3CRV: {"{:,.2f}".format(crv3_supplied)}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}\n\n{etherscan_link}'
+        send_alert(msg)
+    return chain.height
 
 def inverse_stats():
     ts = int(time.time())
