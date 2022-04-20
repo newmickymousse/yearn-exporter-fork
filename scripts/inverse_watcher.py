@@ -140,7 +140,7 @@ def fed_expansions(last_block_recorded):
                 session.add(a)
                 session.commit()
                 print(f'Fed expansion event found. {amount / 1e18} DOLA minted at transaction hash: {txn_hash} , block {event.blockNumber}')    
-                msg = f'📈 Fed Expansion Detected!\n\nFed: {a.fed_name}\nFed Address: {a.fed_address}\nAmount: {a.amount}\n\nTransaction hash: {a.txn_hash}'
+                msg = f'📈 Fed Expansion Detected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
                 send_alert(msg)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
@@ -190,7 +190,7 @@ def fed_contractions(last_block_recorded):
                 session.add(a)
                 session.commit()
                 print(f'Fed contraction event found. {amount / 1e18} DOLA burned at transaction hash: {txn_hash} , block {event.blockNumber}')    
-                msg = f'📉 Fed Contraction Detected!\n\nFed: {a.fed_name}\nFed Address: {a.fed_address}\nAmount: {a.amount}\n\nTransaction hash: {a.txn_hash}'
+                msg = f'📉 Fed Contraction Detected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
                 send_alert(msg)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
@@ -248,7 +248,7 @@ def fed_profit(last_block_recorded):
                 session.commit()
                 print(f'Fed profit event found. {amount / 1e18} DOLA taken as profit at transaction hash: {txn_hash} , block {event.blockNumber}')
                 # if a.fed_address == yearn_fed_address:
-                msg = f'💰 New Fed Profit Collected!\n\nFed: {a.fed_name}\nFed Address: {a.fed_address}\nAmount: {a.amount}\n\nTransaction hash: {a.txn_hash}'
+                msg = f'💰 New Fed Profit Collected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
                 send_alert(msg)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
@@ -315,7 +315,7 @@ def gauge_votes(last_block_recorded):
             session.commit()
             print(f"vote added. {v.user}. {v.weight} for {v.gauge}. txn hash {v.txn_hash}. sync {v.block} / {chain.height}.")
             if v.gauge == dola_gauge:
-                msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {v.weight}\nTransaction hash: {v.txn_hash}'
+                msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {v.weight}\nnveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
                 send_alert(msg)
 
 def inverse_stats():
