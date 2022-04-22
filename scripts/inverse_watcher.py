@@ -258,56 +258,56 @@ def fed_profit(last_block_recorded):
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
 
-def stabilizer(last_block_recorded):
-    event Buy(address indexed user, uint purchased, uint spent); // spent=larger
-    event Sell(address indexed user, uint sold, uint received); // sold=larger
-    stabilizer = "0xcc180262347F84544c3a4854b87C34117ACADf94"
-    fed_data = CHAIN_DATA[chain.id]["FEDS"]
-    feds = []
-    for k in fed_data.keys():
-        feds.append(k)
-    fed_address = feds[1]
-    fed = contract(fed_address)
-    gov_address = fed.gov()
-    dola_address = fed.underlying()
-    dola = contract(dola_address)
-    dola = web3.eth.contract(str(dola_address), abi=dola.abi)
-    topics = construct_event_topic_set(
-        dola.events.Transfer().abi, 
-        web3.codec, 
-        {
-            'to': stabilizer
-        }
-    )
-    logs = web3.eth.get_logs(
-            { 'topics': topics, 'address': dola_address, 'fromBlock': last_block_recorded, 'toBlock': chain.height }
-    )
+# def stabilizer(last_block_recorded):
+#     event Buy(address indexed user, uint purchased, uint spent); // spent=larger
+#     event Sell(address indexed user, uint sold, uint received); // sold=larger
+#     stabilizer = "0xcc180262347F84544c3a4854b87C34117ACADf94"
+#     fed_data = CHAIN_DATA[chain.id]["FEDS"]
+#     feds = []
+#     for k in fed_data.keys():
+#         feds.append(k)
+#     fed_address = feds[1]
+#     fed = contract(fed_address)
+#     gov_address = fed.gov()
+#     dola_address = fed.underlying()
+#     dola = contract(dola_address)
+#     dola = web3.eth.contract(str(dola_address), abi=dola.abi)
+#     topics = construct_event_topic_set(
+#         dola.events.Transfer().abi, 
+#         web3.codec, 
+#         {
+#             'to': stabilizer
+#         }
+#     )
+#     logs = web3.eth.get_logs(
+#             { 'topics': topics, 'address': dola_address, 'fromBlock': last_block_recorded, 'toBlock': chain.height }
+#     )
 
-    events = dola.events.Transfer().processReceipt({'logs': logs})
+#     events = dola.events.Transfer().processReceipt({'logs': logs})
 
-    for event in events:
-        # if event
-        sender, receiver, amount = event.args.values()
-        ts = chain[event.blockNumber].timestamp
-        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
-        txn_hash = event.transactionHash.hex()
-        txn = web3.eth.getTransaction(txn_hash)
+#     for event in events:
+#         # if event
+#         sender, receiver, amount = event.args.values()
+#         ts = chain[event.blockNumber].timestamp
+#         dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+#         txn_hash = event.transactionHash.hex()
+#         txn = web3.eth.getTransaction(txn_hash)
 
-        try:
-            a.fed_name = CHAIN_DATA[chain.id]["FEDS"][a.fed_address]
-        except:
-            a.fed_name = ""
-        # Insert to database
-        with Session(engine) as session:
-            try:
-                session.add(a)
-                session.commit()
-                print(f'Fed profit event found. {amount / 1e18} DOLA taken as profit at transaction hash: {txn_hash} , block {event.blockNumber}')
-                # if a.fed_address == yearn_fed_address:
-                msg = f'💰 New Fed Profit Collected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
-                send_alert(msg)
-            except:
-                print(f'Failed writing {a.action} at {txn_hash}')
+#         try:
+#             a.fed_name = CHAIN_DATA[chain.id]["FEDS"][a.fed_address]
+#         except:
+#             a.fed_name = ""
+#         # Insert to database
+#         with Session(engine) as session:
+#             try:
+#                 session.add(a)
+#                 session.commit()
+#                 print(f'Fed profit event found. {amount / 1e18} DOLA taken as profit at transaction hash: {txn_hash} , block {event.blockNumber}')
+#                 # if a.fed_address == yearn_fed_address:
+#                 msg = f'💰 New Fed Profit Collected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
+#                 send_alert(msg)
+#             except:
+#                 print(f'Failed writing {a.action} at {txn_hash}')
 
 def gauge_votes(last_block_recorded):
     dola_gauge = "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a"
