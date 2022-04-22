@@ -517,6 +517,7 @@ def inverse_stats():
             query_results = session.exec(query)
             for r in query_results:
                 r = r.as_dict()
+                del r["date"]
                 reports.append(r)
         d["reports"] = reports
         data["yearn"]["strategies"].append(d)
@@ -619,12 +620,16 @@ def inverse_stats():
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(json.dumps(data, default=default))
     # pp.pprint(data["curve"]["pool"])
-    d = json.dumps(data, default=default)
+    d = json.dumps(data, default=str)
+    # d = json.dumps(data, default=default)
     with open('../inverse-api/data.json', 'w') as outfile:
         outfile.write(d)
+        print("new api update published")
 
 def default(obj):
     if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, datetime):
         return str(obj)
     raise TypeError("Object of type '%s' is not JSON serializable" % type(obj).__name__)
 
