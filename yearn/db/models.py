@@ -112,6 +112,8 @@ class Reports(SQLModel, table=True):
     date_string: str
     timestamp: str
     updated_timestamp: datetime
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class GaugeVotes(SQLModel, table=True):
     id: int = Field(primary_key=True)
