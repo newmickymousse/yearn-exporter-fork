@@ -94,6 +94,8 @@ def main():
         if last_vote_block > last_block_processed: # Do this in case it is first run in a while
             last_block_processed = last_vote_block + 1
         last_block_processed = curve_lp_tracking(last_block_processed)
+        stabilizer_buy(last_block_processed)
+        stabilizer_sell(last_block_processed)
         inverse_stats()
 
         time.sleep(60*5)
@@ -258,56 +260,65 @@ def fed_profit(last_block_recorded):
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
 
-# def stabilizer(last_block_recorded):
-#     event Buy(address indexed user, uint purchased, uint spent); // spent=larger
-#     event Sell(address indexed user, uint sold, uint received); // sold=larger
-#     stabilizer = "0xcc180262347F84544c3a4854b87C34117ACADf94"
-#     fed_data = CHAIN_DATA[chain.id]["FEDS"]
-#     feds = []
-#     for k in fed_data.keys():
-#         feds.append(k)
-#     fed_address = feds[1]
-#     fed = contract(fed_address)
-#     gov_address = fed.gov()
-#     dola_address = fed.underlying()
-#     dola = contract(dola_address)
-#     dola = web3.eth.contract(str(dola_address), abi=dola.abi)
-#     topics = construct_event_topic_set(
-#         dola.events.Transfer().abi, 
-#         web3.codec, 
-#         {
-#             'to': stabilizer
-#         }
-#     )
-#     logs = web3.eth.get_logs(
-#             { 'topics': topics, 'address': dola_address, 'fromBlock': last_block_recorded, 'toBlock': chain.height }
-#     )
+def stabilizer_buy(last_block_recorded):
+    stabilizer_address = "0x7eC0D931AFFBa01b77711C2cD07c76B970795CDd"
+    stabilizer = contract(stabilizer_address)
+    stabilizer = web3.eth.contract(str(stabilizer_address), abi=stabilizer.abi)
+    topics = construct_event_topic_set(
+        stabilizer.events.Buy().abi, 
+        web3.codec, 
+        {
+        }
+    )
+    logs = web3.eth.get_logs(
+            { 'topics': topics, 'address': stabilizer_address, 'fromBlock': last_block_recorded, 'toBlock': chain.height }
+    )
 
-#     events = dola.events.Transfer().processReceipt({'logs': logs})
+    events = stabilizer.events.Buy().processReceipt({'logs': logs})
 
-#     for event in events:
-#         # if event
-#         sender, receiver, amount = event.args.values()
-#         ts = chain[event.blockNumber].timestamp
-#         dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
-#         txn_hash = event.transactionHash.hex()
-#         txn = web3.eth.getTransaction(txn_hash)
+    for event in events:
+        user, purchased, spent = event.args.values()
+        purchased = purchased/1e18
+        spent = spent/1e18
+        ts = chain[event.blockNumber].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        txn_hash = event.transactionHash.hex()
+        header = f'⚖️ New Stabilizer Buy Detected!\n\n'
+        body = f'User: {user}\nPurchased: ${"{:,.2f}".format(purchased)} DOLA\nFee: ${"{:,.2f}".format(spent - purchased)} DAI\n\n'
+        msg = f'{header}{body}View transaction: https://etherscan.io/tx/{txn_hash}'
+        if purchased > 50_000:
+            send_alert(msg)
+        print(msg)
 
-#         try:
-#             a.fed_name = CHAIN_DATA[chain.id]["FEDS"][a.fed_address]
-#         except:
-#             a.fed_name = ""
-#         # Insert to database
-#         with Session(engine) as session:
-#             try:
-#                 session.add(a)
-#                 session.commit()
-#                 print(f'Fed profit event found. {amount / 1e18} DOLA taken as profit at transaction hash: {txn_hash} , block {event.blockNumber}')
-#                 # if a.fed_address == yearn_fed_address:
-#                 msg = f'💰 New Fed Profit Collected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
-#                 send_alert(msg)
-#             except:
-#                 print(f'Failed writing {a.action} at {txn_hash}')
+def stabilizer_sell(last_block_recorded):
+    stabilizer_address = "0x7eC0D931AFFBa01b77711C2cD07c76B970795CDd"
+    stabilizer = contract(stabilizer_address)
+    stabilizer = web3.eth.contract(str(stabilizer_address), abi=stabilizer.abi)
+    topics = construct_event_topic_set(
+        stabilizer.events.Sell().abi, 
+        web3.codec, 
+        {
+        }
+    )
+    logs = web3.eth.get_logs(
+            { 'topics': topics, 'address': stabilizer_address, 'fromBlock': last_block_recorded, 'toBlock': chain.height }
+    )
+
+    events = stabilizer.events.Sell().processReceipt({'logs': logs})
+
+    for event in events:
+        user, sold, received = event.args.values()
+        sold = sold/1e18
+        received = received/1e18
+        ts = chain[event.blockNumber].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        txn_hash = event.transactionHash.hex()
+        header = f'⚖️ New Stabilizer Sell Detected!\n\n'
+        body = f'User: {user}\nSold: ${"{:,.2f}".format(sold)} DOLA\nFee: ${"{:,.2f}".format(sold - received)} DAI\n\n'
+        msg = f'{header}{body}View transaction: https://etherscan.io/tx/{txn_hash}'
+        if sold > 50_000:
+            send_alert(msg)
+        print(msg)
 
 def gauge_votes(last_block_recorded):
     dola_gauge = "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a"
@@ -441,7 +452,9 @@ def curve_lp_tracking(start_block):
         
         txn_hash = event.transactionHash.hex()
         etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
-        msg = f'🌊 Liquidity Add Detected!\n\n${"{:,.2f}".format(supplied_usd)} of new liquidity added.\n\nDOLA: {"{:,.2f}".format(dola_supplied)}\n3CRV: {"{:,.2f}".format(crv3_supplied)}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}\n\n{etherscan_link}'
+        header = f'🌊 Liquidity Add Detected!'
+        body = f'${"{:,.2f}".format(supplied_usd)} of new liquidity added.\n\nDOLA: {"{:,.2f}".format(dola_supplied)}\n3CRV: {"{:,.2f}".format(crv3_supplied)}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
+        msg = f'{header}\n\n{body}\n\n{etherscan_link}'
         send_alert(msg)
     return chain.height
 
@@ -571,6 +584,8 @@ def inverse_stats():
         array = [0,0]
         d.append(coin)
     data["curve"]["pool"]["tvl"] = tvl
+
+
     # Inverse Fed Data
     yearn_fed = Contract("0xcc180262347F84544c3a4854b87C34117ACADf94")
     data["inverse"] = {}
@@ -625,13 +640,6 @@ def inverse_stats():
     with open('../inverse-api/data.json', 'w') as outfile:
         outfile.write(d)
         print("new api update published")
-
-def default(obj):
-    if isinstance(obj, Decimal):
-        return str(obj)
-    if isinstance(obj, datetime):
-        return str(obj)
-    raise TypeError("Object of type '%s' is not JSON serializable" % type(obj).__name__)
 
 def send_alert(msg):
     encoded_message = urllib.parse.quote(msg)
