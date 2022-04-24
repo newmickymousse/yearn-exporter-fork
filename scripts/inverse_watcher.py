@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal
 from brownie import chain, web3, Contract, ZERO_ADDRESS
+from psutil import virtual_memory
 from rich import print
 from rich.progress import track
 from rich.table import Table
@@ -94,6 +95,8 @@ def main():
         if last_vote_block > last_block_processed: # Do this in case it is first run in a while
             last_block_processed = last_vote_block + 1
         last_block_processed = curve_lp_tracking(last_block_processed)
+        curve_lp_tracking_out_one(last_block_processed)
+        curve_lp_tracking_out(last_block_processed)
         stabilizer_buy(last_block_processed)
         stabilizer_sell(last_block_processed)
         inverse_stats()
@@ -454,6 +457,118 @@ def curve_lp_tracking(start_block):
         etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
         header = f'🌊 Liquidity Add Detected!'
         body = f'${"{:,.2f}".format(supplied_usd)} of new liquidity added.\n\nDOLA: {"{:,.2f}".format(dola_supplied)}\n3CRV: {"{:,.2f}".format(crv3_supplied)}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
+        msg = f'{header}\n\n{body}\n\n{etherscan_link}'
+        send_alert(msg)
+    return chain.height
+
+def curve_lp_tracking_out(start_block):
+    dola_pool_addr = "0xAA5A67c256e27A5d80712c51971408db3370927D"
+    dola_pool = contract(dola_pool_addr)
+    dola_pool = web3.eth.contract(str(dola_pool_addr), abi=dola_pool.abi)
+
+
+    topic_remove = construct_event_topic_set(
+        dola_pool.events.RemoveLiquidity().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    logs = web3.eth.get_logs(
+        {
+            'address': dola_pool_addr, 
+            'topics': topic_remove, 
+            'fromBlock': start_block, 'toBlock': chain.height 
+        }
+    )
+
+    events = dola_pool.events.RemoveLiquidity().processReceipt({'logs': logs})
+    
+    for event in events:
+        if event.address != dola_pool_addr:
+            continue
+        provider, token_amounts, fees, token_supply = event.args.values()
+        dola_removed = token_amounts[0] / 1e18
+        crv3_removed = token_amounts[1] / 1e18
+        total_removed = dola_removed + crv3_removed
+        if total_removed < 50_000:
+            continue
+        block = event.blockNumber
+        ts = chain[block].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        print()
+        print(f"--- {dt} ---")
+        name = ""
+        pool = Contract("0xAA5A67c256e27A5d80712c51971408db3370927D")
+        bal1 = pool.balances(0) / 1e18
+        bal2 = pool.balances(1) / 1e18
+        raw_token_totals = bal1 + bal2
+        virtual_price = pool.get_virtual_price() / 1e18
+        txn_hash = event.transactionHash.hex()
+        etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
+        header = f'🚪 Liquidity Exit Detected!'
+        balances = f'${"{:,.2f}".format(total_removed)} of liquidity has been removed from the pool.\n\nDOLA: {"{:,.2f}".format(dola_removed)}\n3CRV: {"{:,.2f}".format(crv3_removed)}'
+        total_pool_value_usd = token_supply/1e18 * virtual_price
+        body = f'{balances}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
+        msg = f'{header}\n\n{body}\n\n{etherscan_link}'
+        send_alert(msg)
+    return chain.height
+    
+def curve_lp_tracking_out_one(start_block):
+    dola_pool_addr = "0xAA5A67c256e27A5d80712c51971408db3370927D"
+    dola_pool = contract(dola_pool_addr)
+    dola_pool = web3.eth.contract(str(dola_pool_addr), abi=dola_pool.abi)
+
+    topic_remove_one = construct_event_topic_set(
+        dola_pool.events.RemoveLiquidityOne().abi, 
+        web3.codec, 
+        {
+        }
+    )
+
+    logs = web3.eth.get_logs(
+        {
+            'address': dola_pool_addr, 
+            'topics': topic_remove_one, 
+            'fromBlock': start_block, 'toBlock': chain.height 
+        }
+    )
+
+    events = dola_pool.events.RemoveLiquidityOne().processReceipt({'logs': logs})
+    
+    for event in events:
+        if event.address != dola_pool_addr:
+            continue
+        provider, lps_burned, amount_coins_out, total_lp_supply = event.args.values()
+        if amount_coins_out < 50_000e18:
+            continue
+        lps_burned = lps_burned/1e18
+        amount_coins_out = amount_coins_out/1e18
+        total_lp_supply = total_lp_supply/1e18
+        block = event.blockNumber
+        ts = chain[block].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        print()
+        print(f"--- {dt} ---")
+        name = ""
+        pool = Contract("0xAA5A67c256e27A5d80712c51971408db3370927D")
+        dola = Contract(pool.coins(0))
+        crv3 = Contract(pool.coins(0))
+        bal_dola_before = dola.balanceOf(pool, block_identifier=block-1) / 1e18
+        bal_3crv_before = dola.balanceOf(pool, block_identifier=block-1) / 1e18
+        bal_change_dola = bal_dola_before - (dola.balanceOf(pool, block_identifier=block) / 1e18)
+        bal_change_3crv = bal_3crv_before - (crv3.balanceOf(pool, block_identifier=block) / 1e18)
+        removed_dola = bal_change_dola > 0
+        bal1 = pool.balances(0) / 1e18
+        bal2 = pool.balances(1) / 1e18
+        raw_token_totals = bal1 + bal2
+        virtual_price = pool.get_virtual_price() / 1e18
+        txn_hash = event.transactionHash.hex()
+        etherscan_link = f'https://etherscan.io/tx/{txn_hash}'
+        header = f'🚪 Liquidity Exit Detected!'
+        balances = f'${"{:,.2f}".format(amount_coins_out)} of {"DOLA" if removed_dola else "3CRV"} liquidity has been removed from the pool.'
+        total_pool_value_usd = total_lp_supply * virtual_price
+        body = f'{balances}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
         msg = f'{header}\n\n{body}\n\n{etherscan_link}'
         send_alert(msg)
     return chain.height
