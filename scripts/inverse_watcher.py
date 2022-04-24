@@ -541,6 +541,8 @@ def inverse_stats():
     data["curve"]["pool"]["coins"] = []
     d = data["curve"]["pool"]["coins"]
     pool = Contract("0xAA5A67c256e27A5d80712c51971408db3370927D")
+    lp_vault = Contract(vaults[1])
+    data["curve"]["pool"]["dominance"] = lp_vault.totalAssets() / pool.totalSupply()
     tvl = 0
     for c in range(0,5):
         try:
