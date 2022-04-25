@@ -100,6 +100,7 @@ def main():
         stabilizer_buy(last_block_processed)
         stabilizer_sell(last_block_processed)
         inverse_stats()
+        print(last_block_processed, last_block_processed_new, last_vote_block)
         last_block_processed = last_block_processed_new
         time.sleep(60*5)
     
@@ -511,8 +512,7 @@ def curve_lp_tracking_out(start_block):
         total_pool_value_usd = token_supply/1e18 * virtual_price
         body = f'{balances}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
         msg = f'{header}\n\n{body}\n\n{etherscan_link}'
-        print(msg)
-        # send_alert(msg)
+        send_alert(msg)
     return chain.height
     
 def curve_lp_tracking_out_one(start_block):
