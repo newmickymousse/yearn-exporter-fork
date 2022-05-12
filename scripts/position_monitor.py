@@ -12,12 +12,12 @@ load_dotenv(find_dotenv())
 
 def main():
     strats = [
-        # "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
-        # "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
-        # "0x960818b3F08dADca90b840298721FE7B419fBE12", # SSB USDC
-        # "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
+        "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
+        "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
+        "0x960818b3F08dADca90b840298721FE7B419fBE12", # SSB USDC
+        "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
-        # "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
+        "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
     ]
 
     curve_pools = [
@@ -221,7 +221,7 @@ def get_balancer_pool_data(pool_ids):
             token["address"] = t.address
             token["symbol"] = t.symbol()
             token["decimals"] = t.decimals()
-            token["balance"] = balances[i] / 10**token["decimals"]
+            token["balance"] = int(balances[i] / 10**token["decimals"])
             total_assets += token["balance"]
             token_list.append(token)
         d["tokens"] = token_list
@@ -243,7 +243,7 @@ def get_curve_pool_data(pools):
                     token["address"] = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
                     token["symbol"] = "ETH"
                     token["decimals"] = 18
-                    token["balance"] = p.balances(i) / 10**token["decimals"]
+                    token["balance"] = int(p.balances(i) / 10**token["decimals"])
                     total_assets += token["balance"]
                     token_list.append(token)
                 else:
@@ -256,13 +256,13 @@ def get_curve_pool_data(pools):
                         token["decimals"] = underlying.decimals()
                         dec = 10**t.decimals()
                         bal = p.balances(i) / dec
-                        token["balance"] = x_rate / 10**token["decimals"] / dec * bal
+                        token["balance"] = int(x_rate / 10**token["decimals"] / dec * bal)
                     except:
                         print("============================")
                         token["address"] = t.address
                         token["symbol"] = t.symbol()
                         token["decimals"] = t.decimals()
-                        token["balance"] = p.balances(i) / 10**token["decimals"]
+                        token["balance"] = int(p.balances(i) / 10**token["decimals"])
                     total_assets += token["balance"]
                     token_list.append(token)
             except:
