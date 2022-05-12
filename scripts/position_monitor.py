@@ -18,6 +18,8 @@ def main():
         "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
         "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
+        "0xb85413f6d07454828eAc7E62df7d847316475178", # SSC HBTC
+        "0x074620e389B5715f7ba51Fc062D8fFaf973c7E02", # SSB WBTC
     ]
 
     curve_pools = [
@@ -25,10 +27,11 @@ def main():
         "0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF", # IB
     ]
     balancer_pools = [
-        0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063
+        0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
+        0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56000000000000000000000066
     ]
 
-    vaults = []
+    vaults = ["0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E"] # WBTC
     for s in strats:
         s = Contract(s)
         v = s.vault()
@@ -158,12 +161,12 @@ def harvest(s, v, target_dr, pps1, stats):
     stats["debt_payment"] = tx.events["Harvested"]["debtPayment"]/10**v.decimals()
     price = oracle.getPriceUsdcRecommended(v.token()) / 10**6
     stats["debt_payment_usd"] = price * stats["debt_payment"]
-    stats["strategy_debt_before"] = before_debt/10**v.decimals()
-    stats["strategy_debt_before_usd"] = before_debt/10**v.decimals()*price
+    stats["strategy_debt_before"] = int(before_debt/10**v.decimals())
+    stats["strategy_debt_before_usd"] = int(before_debt/10**v.decimals()*price)
     print(tx.events["Harvested"])
     d = v.strategies(s).dict()["totalDebt"]
-    stats["strategy_debt_after"] = d/10**v.decimals()
-    stats["strategy_debt_after_usd"] = d/10**v.decimals() * price
+    stats["strategy_debt_after"] = int(d/10**v.decimals())
+    stats["strategy_debt_after_usd"] = int(d/10**v.decimals() * price)
     stats["success"] =  False
 
     if stats["loss"] > 0:
