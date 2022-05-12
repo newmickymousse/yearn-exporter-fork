@@ -12,12 +12,12 @@ load_dotenv(find_dotenv())
 
 def main():
     strats = [
-        "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
-        "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
-        "0x960818b3F08dADca90b840298721FE7B419fBE12", # SSB USDC
-        "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
+        # "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
+        # "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
+        # "0x960818b3F08dADca90b840298721FE7B419fBE12", # SSB USDC
+        # "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
-        "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
+        # "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
     ]
 
     curve_pools = [
@@ -31,7 +31,9 @@ def main():
     vaults = []
     for s in strats:
         s = Contract(s)
-        vaults.append(s.vault())
+        v = s.vault()
+        if v not in vaults:
+            vaults.append(v)
 
     vault_data = get_vault_data(vaults)
     curve_pool_data = get_curve_pool_data(curve_pools)
@@ -139,6 +141,10 @@ def harvest(s, v, target_dr, pps1, stats):
     except:
         pass
     try:
+        s.updateSlippageProtectionOut(10_000)
+    except:
+        pass
+    try:
         tx = s.harvest()
     except:
         print("🚨 harvest failed")
@@ -154,8 +160,10 @@ def harvest(s, v, target_dr, pps1, stats):
     stats["debt_payment_usd"] = price * stats["debt_payment"]
     stats["strategy_debt_before"] = before_debt/10**v.decimals()
     stats["strategy_debt_before_usd"] = before_debt/10**v.decimals()*price
-    stats["strategy_debt_after"] = tx.events["Harvested"]["debtOutstanding"]/10**v.decimals()
-    stats["strategy_debt_after_usd"] = tx.events["Harvested"]["debtOutstanding"]/10**v.decimals() * price
+    print(tx.events["Harvested"])
+    d = v.strategies(s).dict()["totalDebt"]
+    stats["strategy_debt_after"] = d/10**v.decimals()
+    stats["strategy_debt_after_usd"] = d/10**v.decimals() * price
     stats["success"] =  False
 
     if stats["loss"] > 0:
