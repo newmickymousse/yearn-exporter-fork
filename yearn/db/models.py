@@ -35,13 +35,24 @@ class Block(SQLModel, table=True):
 
     snapshots: List["Snapshot"] = Relationship(back_populates="block")
 
+class TokenData(SQLModel, table=True):
+    id: int = Field(primary_key=True)
+    chain_id: int
+    address: str
+    total_supply: int
+    adjusted_total_supply: int
+    symbol: str
+    block: int
+    timestamp: str
+    date_string: str
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class Snapshot(SQLModel, table=True):
     id: int = Field(primary_key=True)
     product: str
     name: str
     assets: float
-
     block_id: int = Field(foreign_key="block.id")
     block: Block = Relationship(back_populates="snapshots")
 
@@ -68,6 +79,20 @@ class Transactions(SQLModel, table=True):
     updated_timestamp: datetime
     reports: List["Reports"] = Relationship(back_populates="txn")
 
+
+class StrategyData(SQLModel, table=True):
+    id: int = Field(primary_key=True)
+    chain_id: int
+    estimated_assets: int
+    strategy_name: str
+    vault_address: str
+    want_symbol: str
+    debt_ratio: int
+    last_harvest_timestamp: int
+    is_active: bool
+    total_gain: int
+    total_loss: int
+    total_debt: int
 
 class Reports(SQLModel, table=True):
     id: int = Field(primary_key=True)
