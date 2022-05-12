@@ -110,7 +110,8 @@ def setup(strat):
     else:
         best_stats["max_no_loss_ratio"] = best_stats["testing_ratio"]
     del best_stats["testing_ratio"]
-    best_stats["max_ratio_reduction"] = best_stats["current_ratio"] - best_stats["max_no_loss_ratio"]
+    if best_stats["max_no_loss_ratio"] and best_stats["current_ratio"]:
+        best_stats["max_ratio_reduction"] = best_stats["current_ratio"] - best_stats["max_no_loss_ratio"]
     return best_stats
 
 def harvest(s, v, target_dr, pps1, stats):
