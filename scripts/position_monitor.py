@@ -112,6 +112,9 @@ def setup(strat):
     del best_stats["testing_ratio"]
     if best_stats["max_no_loss_ratio"] and best_stats["current_ratio"]:
         best_stats["max_ratio_reduction"] = best_stats["current_ratio"] - best_stats["max_no_loss_ratio"]
+        best_stats["success"] = True
+    else:
+        best_stats["success"] = False
     return best_stats
 
 def harvest(s, v, target_dr, pps1, stats):
