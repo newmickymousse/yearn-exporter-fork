@@ -204,20 +204,20 @@ def get_vault_data(vaults):
         data.append(d)
     return data
 
-def get_balancer_pool_data():
-    pool_ids = [
-        0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
-        0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56000000000000000000000066
-    ]
+def get_balancer_pool_data(pool_ids):
+    # pool_ids = [
+    #     0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
+    #     0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56000000000000000000000066
+    # ]
     vault = Contract("0xBA12222222228d8Ba445958a75a0704d566BF2C8")
     
     data = []
-    token_list = []
     total_assets = 0
     for p in pool_ids:
         tokens = list(vault.getPoolTokens(p).dict()["tokens"])
         balances = list(vault.getPoolTokens(p).dict()["balances"])
         d = {}
+        token_list = []
         pool = Contract(vault.getPool(p)[0])
         d["name"] = pool.name()
         d["pid"] = p
@@ -234,7 +234,10 @@ def get_balancer_pool_data():
             token_list.append(token)
         d["tokens"] = token_list
         d["total_assets"] = int(total_assets)
-    data.append(d)
+        data.append(d)
+    print(data)
+    json_formatted_str = json.dumps(data, indent=4)
+    print(json_formatted_str)
     return data
 
 def get_curve_pool_data(pools):
@@ -281,9 +284,9 @@ def get_curve_pool_data(pools):
             d["name"] = p.name()
         except:
             if p.address == "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022":
-                d["name"] = "STETH"
+                d["name"] = "StETH"
             if p.address == "0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF":
-                d["name"] = "IB"
+                d["name"] = "IronBank"
         d["tokens"] = token_list
         data.append(d)
     return data
