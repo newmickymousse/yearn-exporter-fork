@@ -199,11 +199,16 @@ def get_vault_data(vaults):
         d["decimals"] = decimals
         d["total_assets"] = v.totalAssets() / 10**decimals
         d["underlying"] = v.token()
+        d["underlying_symbol"] = Contract(v.token()).symbol()
         d["available_reserves"] = Contract(d["underlying"]).balanceOf(v) / 10**decimals
         data.append(d)
     return data
 
-def get_balancer_pool_data(pool_ids):
+def get_balancer_pool_data():
+    pool_ids = [
+        0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
+        0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56000000000000000000000066
+    ]
     vault = Contract("0xBA12222222228d8Ba445958a75a0704d566BF2C8")
     
     data = []
