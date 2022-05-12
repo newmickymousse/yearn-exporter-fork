@@ -54,7 +54,7 @@ def main():
     print(json_formatted_str)
     path = os.environ.get('API_PATH')
     d = json.dumps(data, default=str)
-    with open(f'{path}/inverse-api/position_monitor.json', 'w') as outfile:
+    with open(f'{path}/position_monitor.json', 'w') as outfile:
         outfile.write(d)
         print("new postion monitor update published")
 
