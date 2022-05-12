@@ -110,7 +110,7 @@ def setup(strat):
     else:
         best_stats["max_no_loss_ratio"] = best_stats["testing_ratio"]
     del best_stats["testing_ratio"]
-    if best_stats.has_key("max_no_loss_ratio") and best_stats.has_key("current_ratio"):
+    if check_key(best_stats,"max_no_loss_ratio") and check_key(best_stats, "current_ratio"):
         best_stats["max_ratio_reduction"] = best_stats["current_ratio"] - best_stats["max_no_loss_ratio"]
         best_stats["success"] = True
     else:
@@ -271,3 +271,9 @@ def get_curve_pool_data(pools):
         d["tokens"] = token_list
         data.append(d)
     return data
+
+def check_key(dict, key):
+    if key in dict:
+        return True
+    else:
+        return False
