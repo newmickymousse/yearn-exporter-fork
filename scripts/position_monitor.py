@@ -10,6 +10,8 @@ from brownie import (
 )
 load_dotenv(find_dotenv())
 
+oracle = Contract("0x83d95e0D5f402511dB06817Aff3f9eA88224B030")
+
 def main():
     strats = [
         "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
@@ -79,7 +81,8 @@ def setup(strat):
 
     low, high = 0, starting_dr
     if starting_dr >= spare + (10_000 - v.debtRatio()):
-        free_ratios(v, s)
+        pass
+        # free_ratios(v, s)
     try:
         s.setParams(
             10_000,
@@ -123,7 +126,6 @@ def setup(strat):
     return best_stats
 
 def harvest(s, v, target_dr, pps1, stats):
-    oracle = Contract("0x83d95e0D5f402511dB06817Aff3f9eA88224B030")
     dr = v.strategies(s).dict()["debtRatio"]
     before_debt = v.strategies(s).dict()["totalDebt"]
     print(s.address, s.name())
