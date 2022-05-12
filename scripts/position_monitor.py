@@ -214,12 +214,12 @@ def get_balancer_pool_data(pool_ids):
     vault = Contract("0xBA12222222228d8Ba445958a75a0704d566BF2C8")
     
     data = []
-    total_assets = 0
     for p in pool_ids:
         tokens = list(vault.getPoolTokens(p).dict()["tokens"])
         balances = list(vault.getPoolTokens(p).dict()["balances"])
         d = {}
         token_list = []
+        total_assets = 0
         pool = Contract(vault.getPool(p)[0])
         d["name"] = pool.name()
         d["pid"] = p
