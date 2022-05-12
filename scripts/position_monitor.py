@@ -156,7 +156,6 @@ def harvest(s, v, target_dr, pps1, stats):
         stats["success"] = False
         return stats
 
-    stats["current_ratio"] = dr
     stats["testing_ratio"] = target_dr
     stats["profit"] = tx.events["Harvested"]["profit"]/10**v.decimals()
     stats["loss"] = tx.events["Harvested"]["loss"]/10**v.decimals()
@@ -178,6 +177,7 @@ def harvest(s, v, target_dr, pps1, stats):
         print("✅")
         stats["success"] =  True
     chain.revert()
+    stats["current_ratio"] = dr
     print("-----------")
     return stats
 
