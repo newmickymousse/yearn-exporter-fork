@@ -91,6 +91,7 @@ def setup(strat):
         "strategy_name": s.name(),
         "vault_address": v.address,
         "vault_symbol": v.symbol(),
+        "testing_ratio": 10_000,
         "success": False
     }
     best_stats = stats
