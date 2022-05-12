@@ -82,7 +82,7 @@ def setup(strat):
     low, high = 0, starting_dr
     if starting_dr >= spare + (10_000 - v.debtRatio()):
         pass
-        # free_ratios(v, s)
+        free_ratios(v, s)
     try:
         s.setParams(
             10_000,
