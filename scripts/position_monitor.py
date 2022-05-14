@@ -21,7 +21,7 @@ def main():
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
         "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
         "0xb85413f6d07454828eAc7E62df7d847316475178", # SSC HBTC
-        "0x074620e389B5715f7ba51Fc062D8fFaf973c7E02", # SSB WBTC
+        # "0x074620e389B5715f7ba51Fc062D8fFaf973c7E02", # SSB WBTC
         "0xB0F8b341951233BF08A5F15a838A1a85B016aEf9", # SSB WETH
     ]
 
@@ -69,7 +69,7 @@ def main():
 
 def setup(strat):
     if chain.id == 1:
-        account = accounts.at("0x16388463d60FFE0661Cf7F1f31a7D658aC790ff7", force=True)
+        account = accounts.at("0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52", force=True)
     if chain.id == 250:
         account = accounts.at("0x72a34AbafAB09b15E7191822A679f28E067C4a16", force=True)
     s = Contract(strat, owner=account)
