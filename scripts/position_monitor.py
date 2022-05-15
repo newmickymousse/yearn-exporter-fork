@@ -28,6 +28,7 @@ def main():
     curve_pools = [
         "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", # STETH
         "0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF", # IB
+        # "", # FRAX
     ]
     balancer_pools = [
         0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
@@ -53,6 +54,7 @@ def main():
 
     data = {}
     ts = chain.time()
+    data["block"] = chain.height
     data["last_update"] = ts
     data["last_update_str"] = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
     data["simulation_data"] = simulation_data
