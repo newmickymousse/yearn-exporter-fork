@@ -263,6 +263,7 @@ def get_curve_pool_data(pools):
                 else:
                     t = Contract(p.coins(i))
                     try:
+                        # IronBank pool
                         x_rate = t.exchangeRateStored()
                         underlying = Contract(t.underlying())
                         token["address"] = underlying.address
@@ -272,11 +273,11 @@ def get_curve_pool_data(pools):
                         bal = p.balances(i) / dec
                         token["balance"] = int(x_rate / 10**token["decimals"] / dec * bal / 100)
                     except:
-                        print("============================")
+                        # All other pools
                         token["address"] = t.address
                         token["symbol"] = t.symbol()
                         token["decimals"] = t.decimals()
-                        token["balance"] = int(p.balances(i) / 10**token["decimals"] / 100)
+                        token["balance"] = int(p.balances(i) / 10**token["decimals"])
                     total_assets += token["balance"]
                     token_list.append(token)
             except:
