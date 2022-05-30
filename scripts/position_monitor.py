@@ -20,9 +20,10 @@ def main():
         "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
         "0xF9fDc2B5F60355A237deb8BD62CC117b1C907f7b", # SSC STETH
-        "0xb85413f6d07454828eAc7E62df7d847316475178", # SSC HBTC
+        # "0xb85413f6d07454828eAc7E62df7d847316475178", # SSC HBTC
         # "0x074620e389B5715f7ba51Fc062D8fFaf973c7E02", # SSB WBTC
         "0xB0F8b341951233BF08A5F15a838A1a85B016aEf9", # SSB WETH
+        "0xA558D4Aef61AACDEE8EF21c11B3164cd11B273Af", # SSB DOLA
     ]
 
     curve_pools = [
@@ -211,10 +212,6 @@ def get_vault_data(vaults):
     return data
 
 def get_balancer_pool_data(pool_ids):
-    # pool_ids = [
-    #     0x06df3b2bbb68adc8b0e302443692037ed9f91b42000000000000000000000063,
-    #     0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56000000000000000000000066
-    # ]
     vault = Contract("0xBA12222222228d8Ba445958a75a0704d566BF2C8")
     
     data = []
@@ -273,13 +270,13 @@ def get_curve_pool_data(pools):
                         token["decimals"] = underlying.decimals()
                         dec = 10**t.decimals()
                         bal = p.balances(i) / dec
-                        token["balance"] = int(x_rate / 10**token["decimals"] / dec * bal)
+                        token["balance"] = int(x_rate / 10**token["decimals"] / dec * bal / 100)
                     except:
                         print("============================")
                         token["address"] = t.address
                         token["symbol"] = t.symbol()
                         token["decimals"] = t.decimals()
-                        token["balance"] = int(p.balances(i) / 10**token["decimals"])
+                        token["balance"] = int(p.balances(i) / 10**token["decimals"] / 100)
                     total_assets += token["balance"]
                     token_list.append(token)
             except:
