@@ -151,6 +151,10 @@ def harvest(s, v, target_dr, pps1, stats):
     except:
         pass
     try:
+        s.updateMaxSingleTrade(s.estimatedTotalAssets())
+    except:
+        pass
+    try:
         s.updateSlippageProtectionOut(10_000)
     except:
         pass
