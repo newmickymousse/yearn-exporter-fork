@@ -14,8 +14,8 @@ oracle = Contract("0x83d95e0D5f402511dB06817Aff3f9eA88224B030")
 
 def main():
     strats = [
-        "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
-        "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
+        # "0xa6D1C610B3000F143c18c75D84BaA0eC22681185", # DAI IB
+        # "0x0c8f62939Aeee6376f5FAc88f48a5A3F2Cf5dEbB", # USDC IB
         "0x960818b3F08dADca90b840298721FE7B419fBE12", # SSB USDC
         # "0x034d775615d50D870D742caA1e539fC8d97955c2", # SSB DAI
         "0x0967aFe627C732d152e3dFCAdd6f9DBfecDE18c3", # STETH ACC
@@ -28,7 +28,7 @@ def main():
 
     curve_pools = [
         "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", # STETH
-        "0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF", # IB
+        # "0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF", # IB
         # "", # FRAX
     ]
     balancer_pools = [
