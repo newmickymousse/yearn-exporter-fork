@@ -37,7 +37,10 @@ def main():
         0x32296969ef14eb0c6d29669c550d4a0449130230000200000000000000000080,
     ]
 
-    vaults = ["0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E"] # WBTC
+    vaults = [
+        "0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E", # WBTC
+        "0x7Da96a3891Add058AdA2E826306D812C638D87a7", # USDT
+    ] 
     for s in strats:
         s = Contract(s)
         v = s.vault()
