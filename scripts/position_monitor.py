@@ -40,6 +40,7 @@ def main():
     vaults = [
         "0xA696a63cc78DfFa1a63E9E50587C197387FF6C7E", # WBTC
         "0x7Da96a3891Add058AdA2E826306D812C638D87a7", # USDT
+        "0xdA816459F1AB5631232FE5e97a05BBBb94970c95", # DAI
     ] 
     for s in strats:
         s = Contract(s)
