@@ -59,7 +59,7 @@ CHAIN_DATA = {
             "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a": {
                 "name": "DOLA",
                 "chat_id": "-1001566366160",
-                "alerts_on_yearn_only": False,
+                "alert_on_yearn_only": False,
             }
         },
     }
