@@ -19,9 +19,9 @@ warnings.filterwarnings("ignore", ".*cannot be installed or is not supported by 
 
 
 SECONDS_IN_A_YEAR = 31536000
-voter = "0xF147b8125d2ef93FB6965Db97D6746952a133934" # Yearn
-voter = "0x989AEb4d175e16225E39E87d0D97A3360524AD80" # Convex
-voter = "0x88017d9449681d2db852B0311670182929151080"
+yearn_voter = "0xF147b8125d2ef93FB6965Db97D6746952a133934" # Yearn
+# voter = "0x989AEb4d175e16225E39E87d0D97A3360524AD80" # Convex
+# voter = "0x88017d9449681d2db852B0311670182929151080"
 dola_gauge = "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a"
 spell_gauge = "0xd8b712d29381748dB89c36BCa0138d7c75866ddF"
 dola_gauge_creation_block = 13608864
@@ -54,10 +54,12 @@ CHAIN_DATA = {
             "0x95d16646311fDe101Eb9F897fE06AC881B7Db802":{
                 "name": "STARGATE",
                 "chat_id": "-1001697266923",
+                "alert_on_yearn_only": True,
             },
             "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a": {
                 "name": "DOLA",
                 "chat_id": "-1001566366160",
+                "alerts_on_yearn_only": False,
             }
         },
     }
@@ -400,8 +402,9 @@ def gauge_votes(last_block_recorded):
             for g in watched_gauges.keys():
                 if v.gauge == g:
                     info = watched_gauges[g]
-                    msg = f'🗳 New {info["name"]} gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
-                    send_alert(msg, info["chat_id"])
+                    if not info["alert_on_yearn_only"] or v.user == yearn_voter:
+                        msg = f'🗳 New {info["name"]} gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
+                        send_alert(msg, info["chat_id"])
 
 def curve_lp_tracking(start_block):
     dola_pool_addr = "0xAA5A67c256e27A5d80712c51971408db3370927D"
