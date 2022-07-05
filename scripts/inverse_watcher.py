@@ -49,7 +49,17 @@ CHAIN_DATA = {
             "0x5Fa92501106d7E4e8b4eF3c4d08112b6f306194C": "Fed 0xb1",
             "0xCBF33D02f4990BaBcba1974F1A5A8Aea21080E36": "Fed Fuse24",
             "0xcc180262347F84544c3a4854b87C34117ACADf94": "Fed Yearn",
-        }
+        },
+        "WATCHED_GAUGES":{
+            "0x95d16646311fDe101Eb9F897fE06AC881B7Db802":{
+                "name": "STARGATE",
+                "chat_id": "-1001697266923",
+            },
+            "0x8Fa728F393588E8D8dD1ca397E9a710E53fA553a": {
+                "name": "DOLA",
+                "chat_id": "-1001566366160",
+            }
+        },
     }
 }
 
@@ -152,7 +162,7 @@ def fed_expansions(last_block_recorded):
                 session.commit()
                 print(f'Fed expansion event found. {amount / 1e18} DOLA minted at transaction hash: {txn_hash} , block {event.blockNumber}')    
                 msg = f'📈 Fed Expansion Detected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
-                send_alert(msg)
+                send_alert(msg, chat_id)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
 
@@ -202,7 +212,7 @@ def fed_contractions(last_block_recorded):
                 session.commit()
                 print(f'Fed contraction event found. {amount / 1e18} DOLA burned at transaction hash: {txn_hash} , block {event.blockNumber}')    
                 msg = f'📉 Fed Contraction Detected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
-                send_alert(msg)
+                send_alert(msg, chat_id)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
 
@@ -260,7 +270,7 @@ def fed_profit(last_block_recorded):
                 print(f'Fed profit event found. {amount / 1e18} DOLA taken as profit at transaction hash: {txn_hash} , block {event.blockNumber}')
                 # if a.fed_address == yearn_fed_address:
                 msg = f'💰 New Fed Profit Collected!\n\n{a.fed_name}\nFed Address: {a.fed_address}\nAmount: ${"{:,.2f}".format(a.amount)}\n\nView transaction: https://etherscan.io/tx/{a.txn_hash}'
-                send_alert(msg)
+                send_alert(msg, chat_id)
             except:
                 print(f'Failed writing {a.action} at {txn_hash}')
 
@@ -291,7 +301,7 @@ def stabilizer_buy(last_block_recorded):
         body = f'User: {user}\nPurchased: ${"{:,.2f}".format(purchased)} DOLA\nFee: ${"{:,.2f}".format(spent - purchased)} DAI\n\n'
         msg = f'{header}{body}View transaction: https://etherscan.io/tx/{txn_hash}'
         if purchased > 50_000:
-            send_alert(msg)
+            send_alert(msg, chat_id)
         print(msg)
 
 def stabilizer_sell(last_block_recorded):
@@ -321,7 +331,7 @@ def stabilizer_sell(last_block_recorded):
         body = f'User: {user}\nSold: ${"{:,.2f}".format(sold)} DOLA\nFee: ${"{:,.2f}".format(sold - received)} DAI\n\n'
         msg = f'{header}{body}View transaction: https://etherscan.io/tx/{txn_hash}'
         if sold > 50_000:
-            send_alert(msg)
+            send_alert(msg, chat_id)
         print(msg)
 
 def gauge_votes(last_block_recorded):
@@ -385,9 +395,13 @@ def gauge_votes(last_block_recorded):
             session.add(v)
             session.commit()
             print(f"vote added. {v.user}. {v.weight} for {v.gauge}. txn hash {v.txn_hash}. sync {v.block} / {chain.height}.")
-            if v.gauge == dola_gauge:
-                msg = f'🗳 New DOLA gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
-                send_alert(msg)
+            
+            watched_gauges = CHAIN_DATA[chain.id]["WATCHED_GAUGES"]
+            for g in watched_gauges.keys():
+                if v.gauge == g:
+                    info = watched_gauges[g]
+                    msg = f'🗳 New {info["name"]} gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
+                    send_alert(msg, info["chat_id"])
 
 def curve_lp_tracking(start_block):
     dola_pool_addr = "0xAA5A67c256e27A5d80712c51971408db3370927D"
@@ -459,7 +473,7 @@ def curve_lp_tracking(start_block):
         header = f'🌊 Liquidity Add Detected!'
         body = f'${"{:,.2f}".format(supplied_usd)} of new liquidity added.\n\nDOLA: {"{:,.2f}".format(dola_supplied)}\n3CRV: {"{:,.2f}".format(crv3_supplied)}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
         msg = f'{header}\n\n{body}\n\n{etherscan_link}'
-        send_alert(msg)
+        send_alert(msg, chat_id)
     return chain.height
 
 def curve_lp_tracking_out(start_block):
@@ -512,7 +526,7 @@ def curve_lp_tracking_out(start_block):
         total_pool_value_usd = token_supply/1e18 * virtual_price
         body = f'{balances}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
         msg = f'{header}\n\n{body}\n\n{etherscan_link}'
-        send_alert(msg)
+        send_alert(msg, chat_id)
     return chain.height
     
 def curve_lp_tracking_out_one(start_block):
@@ -571,7 +585,7 @@ def curve_lp_tracking_out_one(start_block):
         total_pool_value_usd = total_lp_supply * virtual_price
         body = f'{balances}\n\n----\n\nTotal pool value is now: ${"{:,.2f}".format(total_pool_value_usd)}\nDOLA: {"{:.2%}".format(bal1/raw_token_totals)}\n3CRV: {"{:.2%}".format(bal2/raw_token_totals)}'
         msg = f'{header}\n\n{body}\n\n{etherscan_link}'
-        send_alert(msg)
+        send_alert(msg, chat_id)
     return chain.height
 
 def inverse_stats():
@@ -759,7 +773,7 @@ def inverse_stats():
         outfile.write(d)
         print("new api update published")
 
-def send_alert(msg):
+def send_alert(msg, chat_id):
     encoded_message = urllib.parse.quote(msg)
     url = f"https://api.telegram.org/bot{telegram_bot_key}/sendMessage?chat_id={chat_id}&text={encoded_message}&disable_web_page_preview=true"
     print(url)
