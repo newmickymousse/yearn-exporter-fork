@@ -370,7 +370,7 @@ def gauge_votes(last_block_recorded):
         try:
             name = contract(gauge_address).name()
         except:
-            name = "could not find gauge name"
+            name = "?"
         # print(weight, name)
         
         lock_end = vecrv.locked__end(user)
@@ -407,7 +407,7 @@ def gauge_votes(last_block_recorded):
                         msg = f'🗳 New {info["name"]} gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
                         send_alert(msg, info["chat_id"])
             if v.user_vecrv_balance * v.weight / 10_000 > 2_000_000:
-                msg = f'🗳 New 🐋 gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nveCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
+                msg = f'🗳 New 🐋 gauge vote detected!\n\nUser: {v.user}\nGauge: {v.gauge_name} | {v.gauge}\nWeight: {"{:.2%}".format(v.weight/10_000)}\nEffective veCRV: {"{:,.2f}".format(v.user_vecrv_balance*v.weight/10_000)}\nUser veCRV balance: {"{:,.2f}".format(v.user_vecrv_balance)}\nLock time remaining (yrs): {"{:.2f}".format(v.user_lock_time_remaining)}\n\nView transaction: https://etherscan.io/tx/{v.txn_hash}'
                 send_alert(msg, wavey_alerts_chat_id)
 
 
