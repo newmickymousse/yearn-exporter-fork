@@ -616,7 +616,11 @@ def inverse_stats():
         d["name"] = vault.name()
         d["want_symbol"] = Contract(vault.token()).symbol()
         d["want_address"] = vault.token()
-        strats.append(vault.withdrawalQueue(1))
+        if vault == "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9":
+            s = vault.withdrawalQueue(1)
+        else:
+            s = vault.withdrawalQueue(0)
+        strats.append(s)
         # if vault.withdrawalQueue(1) != ZERO_ADDRESS:
         #     strats.append(vault.withdrawalQueue(1))
         decimals = vault.decimals()
