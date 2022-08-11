@@ -616,13 +616,11 @@ def inverse_stats():
         d["name"] = vault.name()
         d["want_symbol"] = Contract(vault.token()).symbol()
         d["want_address"] = vault.token()
-        # if vault == "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9":
-        #     s = vault.withdrawalQueue(1)
-        # else:
-        s = vault.withdrawalQueue(0)
-        strats.append(s)
-        # if vault.withdrawalQueue(1) != ZERO_ADDRESS:
-        #     strats.append(vault.withdrawalQueue(1))
+        for i in range(0,20):
+            s = vault.withdrawalQueue(i)
+            if s == ZERO_ADDRESS:
+                break
+            strats.append(s)
         decimals = vault.decimals()
         d["decimals"] = decimals
         d["type"] = "vault"
@@ -664,8 +662,14 @@ def inverse_stats():
         except:
             d["max_slippage_in"] = 0
             d["max_slippage_out"] = 0
-        d["estimated_total_assets"] = strat.estimatedTotalAssets() 
+        d["estimated_total_assets"] = strat.estimatedTotalAssets()
+        try:
+            d["keep_crv_percent"] = strat.keepCRV()
+        except:
+            d["keep_crv_percent"] = 0
         reports = []
+        d["crv_locked"] = 0
+        d["yvecrv_minted"] = 0
         with Session(engine) as session:
             reports = []
             query = select(Reports).where(
@@ -675,10 +679,26 @@ def inverse_stats():
             for r in query_results:
                 r = r.as_dict()
                 del r["date"]
+                d["crv_locked"] = d["crv_locked"] + r["keep_crv"]
+                d["yvecrv_minted"] = d["yvecrv_minted"] + r["yvecrv_minted"]
                 reports.append(r)
         d["reports"] = reports
         data["yearn"]["strategies"].append(d)
-
+    
+    # Roll up CRV data
+    data["yearn"]["crv"] = {}
+    d = {}
+    d["crv_locked"] = 0
+    d["yvecrv_minted"] = 0
+    d["keep_crv_percent"] = 0
+    for s in data["yearn"]["strategies"]:
+        d["crv_locked"] = d["crv_locked"] + s["crv_locked"]
+        d["yvecrv_minted"] = d["yvecrv_minted"] + s["yvecrv_minted"]
+        dr = 0
+        if s["vault_address"] == "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9":
+            if s["estimated_total_assets"] > 1e18:
+                d["keep_crv_percent"] = s["keep_crv_percent"]
+    data["yearn"]["crv"] = d
     # Curve Data
     data["curve"] = {}
     data["curve"]["pool"] = {}
@@ -783,7 +803,6 @@ def inverse_stats():
     # pp.pprint(data["curve"]["pool"])
     d = json.dumps(data, default=str)
     # d = json.dumps(data, default=default)
-    assert False
     with open('../inverse-api/data.json', 'w') as outfile:
         outfile.write(d)
         print("new api update published")
