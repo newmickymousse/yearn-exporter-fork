@@ -616,10 +616,10 @@ def inverse_stats():
         d["name"] = vault.name()
         d["want_symbol"] = Contract(vault.token()).symbol()
         d["want_address"] = vault.token()
-        if vault == "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9":
-            s = vault.withdrawalQueue(1)
-        else:
-            s = vault.withdrawalQueue(0)
+        # if vault == "0x67B9F46BCbA2DF84ECd41cC6511ca33507c9f4E9":
+        #     s = vault.withdrawalQueue(1)
+        # else:
+        s = vault.withdrawalQueue(0)
         strats.append(s)
         # if vault.withdrawalQueue(1) != ZERO_ADDRESS:
         #     strats.append(vault.withdrawalQueue(1))
@@ -783,6 +783,7 @@ def inverse_stats():
     # pp.pprint(data["curve"]["pool"])
     d = json.dumps(data, default=str)
     # d = json.dumps(data, default=default)
+    assert False
     with open('../inverse-api/data.json', 'w') as outfile:
         outfile.write(d)
         print("new api update published")
