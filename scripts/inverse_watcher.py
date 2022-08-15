@@ -71,6 +71,7 @@ def main():
     last_expansion_block = 10_000_000
     last_profit_block = 10_000_000
     last_block_processed = last_profit_block
+    last_aave_timestamp = 0
     while True:
         run_time = datetime.utcfromtimestamp(int( time.time() )).strftime("%m/%d/%Y, %H:%M:%S")
         print(f'\nStarting ... {run_time}\n')
@@ -113,6 +114,7 @@ def main():
         stabilizer_buy(last_block_processed)
         stabilizer_sell(last_block_processed)
         inverse_stats()
+        last_aave_timestamp = aave_utilization(last_aave_timestamp)
         print(last_block_processed, last_block_processed_new, last_vote_block)
         last_block_processed = last_block_processed_new
         time.sleep(60*5)
@@ -806,6 +808,27 @@ def inverse_stats():
     with open('../inverse-api/data.json', 'w') as outfile:
         outfile.write(d)
         print("new api update published")
+
+def aave_utilization(last_report):
+    DAY = 24 * 60 * 60
+    weth = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+    provider = Contract("0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d")
+    aweth = Contract("0x030bA81f1c18d280636F32af80b9AAd02Cf0854e")
+    liquidity = provider.getReserveData(weth)["availableLiquidity"]
+    yearn_provider = Contract('0xe26684de8d5A40a35c3FC15C9328C7f3A523759b')
+    underlying_balance_stored = yearn_provider.underlyingBalanceStored()
+    enough_liquidity = underlying_balance_stored < liquidity
+    total_supply = aweth.totalSupply()
+    utilization = (total_supply - liquidity) / total_supply
+    chat_id = -1001560526095
+    print(enough_liquidity, liquidity/1e18, underlying_balance_stored/1e18)
+
+    if utilization > 0.75 or not enough_liquidity or chain.time() > int(last_report) + DAY:
+        message = f'--- 👻 AAVE ETH lender report ---\nMarket Utilization: {"{:.2%}".format(utilization)}\nLiquidity for full withdraw: {"✅" if enough_liquidity else "🛑"}\nYearn / Available Liq: {"{:,.0f}".format(underlying_balance_stored/1e18)} / {"{:,.0f}".format(liquidity/1e18)}'
+        send_alert(message, chat_id)
+    
+    print(message)
+    return chain.time()
 
 def send_alert(msg, chat_id):
     encoded_message = urllib.parse.quote(msg)

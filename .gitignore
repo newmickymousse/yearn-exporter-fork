@@ -22,3 +22,7 @@ package*.json
 hardhat.config.js
 .idea
 .venv/
+TC.xlsx
+scripts/tc_admins.py
+scripts/tracking/tornado.py
+test.xlsx
