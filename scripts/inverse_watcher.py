@@ -821,13 +821,10 @@ def aave_utilization(last_report):
     total_supply = aweth.totalSupply()
     utilization = (total_supply - liquidity) / total_supply
     chat_id = -1001560526095
-    print(enough_liquidity, liquidity/1e18, underlying_balance_stored/1e18)
 
     if utilization > 0.75 or not enough_liquidity or chain.time() > int(last_report) + DAY:
         message = f'--- 👻 AAVE ETH lender report ---\nMarket Utilization: {"{:.2%}".format(utilization)}\nLiquidity for full withdraw: {"✅" if enough_liquidity else "🛑"}\nYearn / Available Liq: {"{:,.0f}".format(underlying_balance_stored/1e18)} / {"{:,.0f}".format(liquidity/1e18)}'
         send_alert(message, chat_id)
-    
-    print(message)
     return chain.time()
 
 def send_alert(msg, chat_id):
