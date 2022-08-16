@@ -37,6 +37,7 @@ load_dotenv(find_dotenv())
 telegram_bot_key = os.environ.get('WAVEY_ALERTS_BOT_KEY')
 chat_id = "-1001566366160"
 wavey_alerts_chat_id = "-789090497"
+alerts_enabled = True if os.environ.get('ENVIRONMENT') == "PROD" else False
 
 
 CHAIN_DATA = {
@@ -682,6 +683,10 @@ def inverse_stats():
             for r in query_results:
                 r = r.as_dict()
                 del r["date"]
+                if not r["yvecrv_minted"]:
+                    r["yvecrv_minted"] = 0
+                if not r["keep_crv"]:
+                    r["keep_crv"] = 0
                 d["crv_locked"] = d["crv_locked"] + r["keep_crv"]
                 d["yvecrv_minted"] = d["yvecrv_minted"] + r["yvecrv_minted"]
                 reports.append(r)
@@ -832,5 +837,6 @@ def send_alert(msg, chat_id):
     encoded_message = urllib.parse.quote(msg)
     url = f"https://api.telegram.org/bot{telegram_bot_key}/sendMessage?chat_id={chat_id}&text={encoded_message}&disable_web_page_preview=true"
     print(url)
-    urllib.request.urlopen(url)
+    if alerts_enabled:
+        urllib.request.urlopen(url)
     print(msg)
