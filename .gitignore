@@ -26,3 +26,4 @@ TC.xlsx
 scripts/tc_admins.py
 scripts/tracking/tornado.py
 test.xlsx
+scripts/tracking/dola_compare.py

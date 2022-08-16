@@ -672,6 +672,7 @@ def inverse_stats():
         reports = []
         d["crv_locked"] = 0
         d["yvecrv_minted"] = 0
+        d["keep_crv"] = 0
         with Session(engine) as session:
             reports = []
             query = select(Reports).where(
