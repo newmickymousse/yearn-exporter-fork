@@ -11,13 +11,14 @@ if environment == "PROD":
 alerts_enabled = True
 bot = telebot.TeleBot(telegram_bot_key)
 
+DAY = 60 * 60 * 24
+
 def main():
     oracle = Contract('0x83d95e0D5f402511dB06817Aff3f9eA88224B030')
     helper = Contract('0x52CbF68959e082565e7fd4bBb23D9Ccfb8C8C057')
     explorer = "https://etherscan.io/"
     vaults = list(helper.getVaults())
-    DAY = 60 * 60 * 24
-    threshold = DAY * 20
+
     current_time = chain.time()
 
     message = f'Showing vaults without harvest in the last {threshold/60/60/24} days\n\n'
@@ -25,11 +26,7 @@ def main():
         v = Contract(v)
         price = oracle.getPriceUsdcRecommended(v.token()) / 10**6
         vault_tvl = price * v.totalAssets() / 10**v.decimals()
-        if (
-            vault_tvl > 1_000_000 
-            and v.lastReport() + threshold < current_time
-            and v.depositLimit() != 0
-        ):
+        if alert_condition(v, vault_tvl):
             msg = f"[{v.name()} {v.apiVersion()}]({explorer}address/{v.address})\n"
             message = message + msg
             strats = get_strats(v)
@@ -45,6 +42,25 @@ def main():
             message = message + '\n'
     send_alert(message, chat_id)
 
+def alert_condition(vault, vault_tvl):
+    TVL_THRESHOLD = 1_000_000
+    DR_THREHSHOL = 4000
+    TIME_THREHSHOLD = DAY * 20
+
+    strats = get_strats(v)
+    debt_ratio_not_harvested = 0
+    for s in strats:
+        strat_info = vault.strategies(s)
+        lr = strat_info['lastReport']
+        dr = strat_info['debtRatio']
+        if lr + TIME_THREHSHOLD < current_time:
+            debt_ratio_not_harvested += dr
+    return  (
+            vault_tvl > TVL_THRESHOLD
+            and debt_ratio_not_harvested > DR_THREHSHOL
+            and vault.depositLimit() != 0
+        )
+
 def get_strats(v):
     strats = []
     for i in range(0,20):
@@ -58,4 +74,3 @@ def send_alert(msg, chat_id):
     if alerts_enabled:
         bot.send_message(chat_id, msg, parse_mode="markdown", disable_web_page_preview = True)
     print(msg)
-    
