@@ -43,20 +43,20 @@ def main():
 
 def alert_condition(vault, vault_tvl):
     TVL_THRESHOLD = 1_000_000
-    DR_THREHSHOL = 4000
-    TIME_THREHSHOLD = DAY * 20
+    DR_THRESHOLD = 4000
+    TIME_THRESHOLD = DAY * 20
 
     strats = get_strats(vault)
-    debt_ratio_not_harvested = 0
+    debt_ratio_not_harvested = 10000
     for s in strats:
         strat_info = vault.strategies(s)
         lr = strat_info['lastReport']
         dr = strat_info['debtRatio']
-        if lr + TIME_THREHSHOLD < current_time:
-            debt_ratio_not_harvested += dr
+        if lr + TIME_THRESHOLD > current_time:
+            debt_ratio_not_harvested -= dr
     return  (
             vault_tvl > TVL_THRESHOLD
-            and debt_ratio_not_harvested > DR_THREHSHOL
+            and debt_ratio_not_harvested > DR_THRESHOLD
             and vault.depositLimit() != 0
         )
 
