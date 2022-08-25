@@ -20,7 +20,6 @@ def main():
     threshold = DAY * 20
     current_time = chain.time()
 
-    message = ''
     message = f'Showing vaults without harvest in the last {threshold/60/60/24} days\n\n'
     for v in vaults:
         v = Contract(v)
@@ -56,11 +55,7 @@ def get_strats(v):
     return strats
 
 def send_alert(msg, chat_id):
-    # encoded_message = urllib.parse.quote(msg)
-    # url = f"https://api.telegram.org/bot{telegram_bot_key}/sendMessage?chat_id={chat_id}&text={encoded_message}&disable_web_page_preview=true"
-    # print(url)
     if alerts_enabled:
         bot.send_message(chat_id, msg, parse_mode="markdown", disable_web_page_preview = True)
-        # urllib.request.urlopen(url)
     print(msg)
     
