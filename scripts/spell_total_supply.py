@@ -8,10 +8,36 @@ from matplotlib import colors
 from yearn.db.models import TokenData, Session, Snapshot, engine, select
 from yearn.networks import Network
 from yearn.utils import contract, contract_creation_block
+from web3._utils.events import construct_event_topic_set
+
 from yearn.utils import closest_block_after_timestamp
 from brownie import chain, web3, Contract, ZERO_ADDRESS
 
 sentry_sdk.set_tag('script','science')
+
+def checker():
+    deploy_block = 10724600
+    a = ''
+    c = Contract(a)
+    c = web3.eth.contract(str(a), abi=c.abi)  
+    topics = construct_event_topic_set(
+        c.events.ApproveWallet().abi, 
+        web3.codec, 
+        {
+        }
+    )
+    logs = web3.eth.get_logs(
+            { 'address': a, 'topics': topics, 'fromBlock': deploy_block, 'toBlock': chain.height }
+    )
+
+    events = c.events.ApproveWallet().processReceipt({'logs': logs})
+    c = Contract(a)
+    for event in events:
+        a = event.args.get('')
+        ts = chain[event.blockNumber].timestamp
+        dt = datetime.utcfromtimestamp(ts).strftime("%m/%d/%Y, %H:%M:%S")
+        print(a,dt)
+
 
 def export_data():
     spell = Contract("0x090185f2135308BaD17527004364eBcC2D37e5F6")
