@@ -6,6 +6,7 @@ load_dotenv(find_dotenv())
 telegram_bot_key = os.environ.get('WAVEY_ALERTS_BOT_KEY')
 environment = os.environ.get('ENVIRONMENT')
 chat_id = "-789090497"
+current_time = chain.time()
 if environment == "PROD":
     chat_id = -1001466522938 # YFI_DAILY_REPORTS
 alerts_enabled = True
@@ -18,10 +19,8 @@ def main():
     helper = Contract('0x52CbF68959e082565e7fd4bBb23D9Ccfb8C8C057')
     explorer = "https://etherscan.io/"
     vaults = list(helper.getVaults())
-
-    current_time = chain.time()
-
-    message = f'Showing vaults without harvest in the last {threshold/60/60/24} days\n\n'
+    message = ''
+    # message = f'Showing vaults without harvest in the last {threshold/60/60/24} days\n\n'
     for v in vaults:
         v = Contract(v)
         price = oracle.getPriceUsdcRecommended(v.token()) / 10**6
@@ -47,7 +46,7 @@ def alert_condition(vault, vault_tvl):
     DR_THREHSHOL = 4000
     TIME_THREHSHOLD = DAY * 20
 
-    strats = get_strats(v)
+    strats = get_strats(vault)
     debt_ratio_not_harvested = 0
     for s in strats:
         strat_info = vault.strategies(s)
